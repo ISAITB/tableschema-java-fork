@@ -9,6 +9,7 @@ import io.frictionlessdata.tableschema.exception.InvalidCastException;
 import io.frictionlessdata.tableschema.util.JsonUtil;
 import org.apache.commons.lang3.StringUtils;
 
+import java.math.BigInteger;
 import java.net.URI;
 import java.time.*;
 import java.util.*;
@@ -124,7 +125,8 @@ public abstract class Field<T> {
      * A field's `format` property is a string, indicating a format for the field type.
      * http://frictionlessdata.io/specs/table-schema/index.html#field-descriptors
      */
-    String format = FIELD_FORMAT_DEFAULT;
+    private String format = FIELD_FORMAT_DEFAULT;
+    private String definedFormat = FIELD_FORMAT_DEFAULT;
 
     /**
      * A human readable label or title for the field
@@ -150,6 +152,8 @@ public abstract class Field<T> {
 
     Map<String, Object> options = null;
 
+    private Set<Object> existingValues = null;
+
     /**
      * Constructor for our reflection-based instantiation only
      */
@@ -171,7 +175,7 @@ public abstract class Field<T> {
             Map options){
         this.name = name;
         this.type = type;
-        this.format = format;
+        setFormat(format);
         this.title = title;
         this.rdfType = rdfType;
         this.description = description;
@@ -234,7 +238,7 @@ public abstract class Field<T> {
                 if(enforceConstraints && this.constraints != null){
                     Map<String, Object> violatedConstraints = checkConstraintViolations(castValue);
                     if(!violatedConstraints.isEmpty()){
-                        throw new ConstraintsException("Violated "+ violatedConstraints.size()+" contstraints");
+                        throw new ConstraintsException("Violated "+ violatedConstraints.size()+" constraints");
                     }
                 }
                 
@@ -333,14 +337,19 @@ public abstract class Field<T> {
          * If a minimum value constraint is specified then the field descriptor MUST contain a type key.
          **/
         if(this.constraints.containsKey(CONSTRAINT_KEY_MINIMUM)){
-            
-            if(value instanceof Integer){
-                int minInt = (int)this.constraints.get(CONSTRAINT_KEY_MINIMUM);
-                if((int)value < minInt){
-                    violatedConstraints.put(CONSTRAINT_KEY_MINIMUM, minInt);
+            if (value instanceof Number) {
+                if (this instanceof IntegerField) {
+                    int minInt = Integer.parseInt(this.constraints.get(CONSTRAINT_KEY_MINIMUM).toString());
+                    if(((Number)value).longValue() < minInt){
+                        violatedConstraints.put(CONSTRAINT_KEY_MINIMUM, minInt);
+                    }
+                } else {
+                    double minDouble = Double.parseDouble(this.constraints.get(CONSTRAINT_KEY_MINIMUM).toString());
+                    if(((Number)value).doubleValue() < minDouble){
+                        violatedConstraints.put(CONSTRAINT_KEY_MINIMUM, minDouble);
+                    }
                 }
-                
-            }else if(value instanceof LocalTime){
+            } else if(value instanceof LocalTime){
                 LocalTime minTime = (LocalTime)this.constraints.get(CONSTRAINT_KEY_MINIMUM);
                 if(((LocalTime)value).isBefore(minTime)){
                     violatedConstraints.put(CONSTRAINT_KEY_MINIMUM, minTime);
@@ -374,14 +383,19 @@ public abstract class Field<T> {
         
         // As for minimum, but specifies a maximum value for a field.
         if(this.constraints.containsKey(CONSTRAINT_KEY_MAXIMUM)){
-            
-            if(value instanceof Integer){
-                int maxInt = (int)this.constraints.get(CONSTRAINT_KEY_MAXIMUM);
-                if((int)value > maxInt){
-                    violatedConstraints.put(CONSTRAINT_KEY_MAXIMUM, maxInt);
+            if (value instanceof Number) {
+                if (this instanceof IntegerField) {
+                    int maxInt = Integer.parseInt(this.constraints.get(CONSTRAINT_KEY_MAXIMUM).toString());
+                    if(((Number)value).longValue() > maxInt){
+                        violatedConstraints.put(CONSTRAINT_KEY_MAXIMUM, maxInt);
+                    }
+                } else {
+                    double maxDouble = Double.parseDouble(this.constraints.get(CONSTRAINT_KEY_MAXIMUM).toString());
+                    if(((Number)value).doubleValue() > maxDouble){
+                        violatedConstraints.put(CONSTRAINT_KEY_MAXIMUM, maxDouble);
+                    }
                 }
-                
-            }else if(value instanceof LocalTime){
+            } else if(value instanceof LocalTime){
                 LocalTime maxTime = (LocalTime)this.constraints.get(CONSTRAINT_KEY_MAXIMUM);
 
                 if(((LocalTime)value).isAfter(maxTime)){
@@ -403,6 +417,7 @@ public abstract class Field<T> {
                 }
 
             }else if(value instanceof YearMonth){
+                // TODO FIX
                 YearMonth maxDate = (YearMonth)this.constraints.get(CONSTRAINT_KEY_MAXIMUM);
 
                 if(((YearMonth)value).isAfter(maxDate)){
@@ -410,6 +425,7 @@ public abstract class Field<T> {
                 }
 
             }else if(value instanceof Duration){
+                // TODO FIX
                 Duration maxDuration = (Duration)this.constraints.get(CONSTRAINT_KEY_MAXIMUM);
                 if(((Duration)value).compareTo(maxDuration) > 0){
                     violatedConstraints.put(CONSTRAINT_KEY_MAXIMUM, maxDuration);
@@ -533,6 +549,20 @@ public abstract class Field<T> {
                 violatedConstraints.put(CONSTRAINT_KEY_ENUM, this.constraints.get(CONSTRAINT_KEY_ENUM));
             }
         }
+
+        if (this.constraints.containsKey(CONSTRAINT_KEY_UNIQUE)) {
+            boolean unique = Boolean.parseBoolean(this.constraints.get(CONSTRAINT_KEY_UNIQUE).toString());
+            if (unique) {
+                if (existingValues == null) {
+                    existingValues = new HashSet<>();
+                }
+                if (existingValues.contains(value)) {
+                    violatedConstraints.put(CONSTRAINT_KEY_UNIQUE, unique);
+                } else {
+                    existingValues.add(value);
+                }
+            }
+        }
         
         return violatedConstraints;
     }
@@ -575,6 +605,15 @@ public abstract class Field<T> {
 
     public void setFormat(String format) {
         this.format = format;
+        setDefinedFormat(format);
+    }
+
+    public String getDefinedFormat(){
+        return this.definedFormat;
+    }
+
+    public void setDefinedFormat(String definedFormat) {
+        this.definedFormat = definedFormat;
     }
 
     public String getTitle(){
@@ -658,5 +697,23 @@ public abstract class Field<T> {
                 ", format='" + format + '\'' +
                 ", title='" + title + '\'' +
                 '}';
+    }
+
+    public void validate() {
+        // Do nothing by default
+    }
+
+    public static String formatValueAsString(Object value, Field<?> field) {
+        String valueAsString = null;
+        if (field instanceof DateField) {
+            valueAsString = ((DateField)field).formatValueAsString((LocalDate)value, field.getFormat(), field.getOptions());
+        } else if (field instanceof DatetimeField) {
+            valueAsString = ((DatetimeField)field).formatValueAsString((ZonedDateTime)value, field.getFormat(), field.getOptions());
+        } else if (field instanceof TimeField) {
+            valueAsString = ((TimeField)field).formatValueAsString((LocalTime)value, field.getFormat(), field.getOptions());
+        } else if (value != null) {
+            valueAsString = value.toString();
+        }
+        return valueAsString;
     }
 }

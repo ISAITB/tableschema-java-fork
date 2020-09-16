@@ -104,11 +104,11 @@ public class GeopointField extends Field<double[]> {
     public Object formatValueForJson(double[] value) throws InvalidCastException, ConstraintsException {
         if (null == value)
             return null;
-        if ((null == format) || (format.equalsIgnoreCase(Field.FIELD_FORMAT_DEFAULT))){
+        if ((null == getFormat()) || (getFormat().equalsIgnoreCase(Field.FIELD_FORMAT_DEFAULT))){
             return value[0]+","+value[1];
-        }else if(format.equalsIgnoreCase(Field.FIELD_FORMAT_ARRAY)){
+        }else if(getFormat().equalsIgnoreCase(Field.FIELD_FORMAT_ARRAY)){
             return value;
-        } else if(format.equalsIgnoreCase(Field.FIELD_FORMAT_OBJECT)){
+        } else if(getFormat().equalsIgnoreCase(Field.FIELD_FORMAT_OBJECT)){
             Map<String, Double> map = new LinkedHashMap<>();
             map.put("lon", value[0]);
             map.put("lat", value[1]);

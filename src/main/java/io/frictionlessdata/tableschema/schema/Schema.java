@@ -275,7 +275,9 @@ public class Schema {
                      }
                  }
              }
-
+            for (Field f: getFields()) {
+                f.validate();
+            }
         }catch(ValidationException ve){
             if(this.strictValidation){
                 throw ve;

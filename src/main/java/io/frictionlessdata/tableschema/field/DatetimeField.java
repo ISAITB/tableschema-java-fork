@@ -3,6 +3,7 @@ package io.frictionlessdata.tableschema.field;
 import io.frictionlessdata.tableschema.exception.ConstraintsException;
 import io.frictionlessdata.tableschema.exception.InvalidCastException;
 import io.frictionlessdata.tableschema.exception.TypeInferringException;
+import io.frictionlessdata.tableschema.util.TableSchemaUtil;
 
 import java.net.URI;
 import java.time.ZonedDateTime;
@@ -32,25 +33,37 @@ public class DatetimeField extends Field<ZonedDateTime> {
     }
 
     @Override
+    public void setFormat(String format) {
+        super.setFormat(TableSchemaUtil.pythonDateFormatToJavaDateFormat(format));
+        super.setDefinedFormat(format);
+    }
+
+    @Override
     public ZonedDateTime parseValue(String value, String format, Map<String, Object> options)
             throws InvalidCastException, ConstraintsException {
+        if (format == null) {
+            Pattern pattern = Pattern.compile(REGEX_DATETIME);
+            Matcher matcher = pattern.matcher(value);
+            if (matcher.matches()){
+                String locValue = value.endsWith("Z") ? value.replace("Z", "")+"+0000" : value;
+                TemporalAccessor dt = formatter.parse(locValue);
 
-        Pattern pattern = Pattern.compile(REGEX_DATETIME);
-        Matcher matcher = pattern.matcher(value);
-
-        if(matcher.matches()){
-            String locValue = value.endsWith("Z") ? value.replace("Z", "")+"+0000" : value;
-            TemporalAccessor dt = formatter.parse(locValue);
-
-            return ZonedDateTime.from(dt);
-        }else{
-            throw new TypeInferringException("DateTime field not in ISO 8601 format yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+                return ZonedDateTime.from(dt);
+            } else{
+                throw new TypeInferringException("DateTime field not in ISO 8601 format yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+            }
+        } else {
+            return ZonedDateTime.from(DateTimeFormatter.ofPattern(format).parse(value));
         }
     }
 
     @Override
     public String formatValueAsString(ZonedDateTime value, String format, Map<String, Object> options) throws InvalidCastException, ConstraintsException {
-        return value.format(formatter);
+        if (format == null) {
+            return value.format(formatter);
+        } else {
+            return value.format(DateTimeFormatter.ofPattern(format));
+        }
     }
 
 
@@ -58,4 +71,24 @@ public class DatetimeField extends Field<ZonedDateTime> {
     public String parseFormat(String value, Map<String, Object> options) {
         return "default";
     }
+
+    @Override
+    public void validate() {
+        super.validate();
+        if (constraints != null) {
+            if (constraints.containsKey(CONSTRAINT_KEY_MINIMUM)) {
+                Object value = constraints.get(CONSTRAINT_KEY_MINIMUM);
+                if (value instanceof String) {
+                    constraints.put(CONSTRAINT_KEY_MINIMUM, ZonedDateTime.from(DateTimeFormatter.ofPattern(getFormat()).parse((String)value)));
+                }
+            }
+            if (constraints.containsKey(CONSTRAINT_KEY_MAXIMUM)) {
+                Object value = constraints.get(CONSTRAINT_KEY_MAXIMUM);
+                if (value instanceof String) {
+                    constraints.put(CONSTRAINT_KEY_MAXIMUM, ZonedDateTime.from(DateTimeFormatter.ofPattern(getFormat()).parse((String)value)));
+                }
+            }
+        }
+    }
+
 }
