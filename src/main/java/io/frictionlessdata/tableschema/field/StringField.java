@@ -2,7 +2,6 @@ package io.frictionlessdata.tableschema.field;
 
 import io.frictionlessdata.tableschema.exception.ConstraintsException;
 import io.frictionlessdata.tableschema.exception.InvalidCastException;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.validator.routines.EmailValidator;
 
 import java.net.URI;
@@ -47,6 +46,21 @@ public class StringField extends Field<String> {
     }
 
     @Override
+    public boolean valueHasValidFormat(String value) {
+        String format = getFormat();
+        if (format == null) {
+            format = FIELD_FORMAT_DEFAULT;
+        }
+        if ((format.equals(FIELD_FORMAT_EMAIL) && !validEmail(value)) ||
+                (format.equals(FIELD_FORMAT_UUID) && !validUuid(value)) ||
+                (format.equals(FIELD_FORMAT_URI) && !validUri(value))) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    @Override
     public String formatValueAsString(String value, String format, Map<String, Object> options) throws InvalidCastException, ConstraintsException {
         return value;
     }
@@ -64,26 +78,36 @@ public class StringField extends Field<String> {
      */
     @Override
     public String parseFormat(String value, Map<String, Object> options) {
-        if (null == value)
-            return FIELD_FORMAT_DEFAULT;
-
-        Matcher uuidMatcher = PATTERN_UUID.matcher(value);
-        if (uuidMatcher.matches()) {
-            return FIELD_FORMAT_UUID;
-        } else if (EmailValidator.getInstance().isValid(value)) {
-            return FIELD_FORMAT_EMAIL;
-        } else try {
-            URI uri = new URI(value);
-            if ((null == uri.getAuthority())
-             && (null == uri.getScheme())
-             && (null == uri.getHost())
-             && (null == uri.getQuery())
-            ){
-                return FIELD_FORMAT_DEFAULT;
+        if (value != null) {
+            if (validUuid(value)) {
+                return FIELD_FORMAT_UUID;
+            } else if (validEmail(value)) {
+                return FIELD_FORMAT_EMAIL;
+            } else if (validUri(value)) {
+                return FIELD_FORMAT_URI;
             }
-            return FIELD_FORMAT_URI;
+        }
+        return FIELD_FORMAT_DEFAULT;
+    }
+
+    private boolean validUuid(String value) {
+        Matcher uuidMatcher = PATTERN_UUID.matcher(value);
+        return uuidMatcher.matches();
+    }
+
+    private boolean validEmail(String value) {
+        return EmailValidator.getInstance().isValid(value);
+    }
+
+    private boolean validUri(String value) {
+        try {
+            URI uri = new URI(value);
+            return uri.getAuthority() != null &&
+                    uri.getScheme() != null &&
+                    uri.getHost() != null;
         } catch (URISyntaxException ex) {
-            return FIELD_FORMAT_DEFAULT;
+            return false;
         }
     }
+
 }

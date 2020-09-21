@@ -1,18 +1,66 @@
 package io.frictionlessdata.tableschema.util;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
 
 public class TableSchemaUtil {
+
+    public static LocalDate parseDate(String value, String pattern) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+        try {
+            LocalDate parsedValue = LocalDate.parse(value, formatter);
+            String formattedParsedValue = parsedValue.format(formatter);
+            if (formattedParsedValue.equals(value)) {
+                return parsedValue;
+            }
+        } catch (DateTimeParseException e) {
+            // Ignore.
+        }
+        return null;
+    }
+
+    public static ZonedDateTime parseDateTime(String value, String pattern) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+        try {
+            ZonedDateTime parsedValue = ZonedDateTime.parse(value, formatter);
+            String formattedParsedValue = parsedValue.format(formatter);
+            if (formattedParsedValue.equals(value)) {
+                return parsedValue;
+            }
+        } catch (DateTimeParseException e) {
+            // Ignore.
+        }
+        return null;
+    }
+
+    public static LocalTime parseTime(String value, String pattern) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+        try {
+            LocalTime parsedValue = LocalTime.parse(value, formatter);
+            String formattedParsedValue = parsedValue.format(formatter);
+            if (formattedParsedValue.equals(value)) {
+                return parsedValue;
+            }
+        } catch (DateTimeParseException e) {
+            // Ignore.
+        }
+        return null;
+    }
 
     public static String pythonDateFormatToJavaDateFormat(String pythonFormat) {
         if (pythonFormat == null) {
           return null;
         }
         return pythonFormat
-                .replaceAll("%a", "E")
+                .replaceAll("%a", "EEE")
                 .replaceAll("%A", "EEEE")
-                .replaceAll("%w", "u") // TODO problem with Sunday (0 should be 7)
+                .replaceAll("%w", "e") // TODO problem with Sunday (0 should be 7)
                 .replaceAll("%d", "dd")
                 .replaceAll("%b", "MMM")
                 .replaceAll("%B", "MMMM")
@@ -24,7 +72,7 @@ public class TableSchemaUtil {
                 .replaceAll("%p", "a")
                 .replaceAll("%M", "mm")
                 .replaceAll("%S", "ss")
-                .replaceAll("%f", "") // TODO microseconds versus milliseconds
+                .replaceAll("%f", "SSSSSS")
                 .replaceAll("%z", "Z")
                 .replaceAll("%Z", "zzz")
                 .replaceAll("%j", "D")

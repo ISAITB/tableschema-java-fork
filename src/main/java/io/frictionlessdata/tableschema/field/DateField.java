@@ -8,14 +8,11 @@ import io.frictionlessdata.tableschema.util.TableSchemaUtil;
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAccessor;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class DateField extends Field<LocalDate> {
     // ISO8601 format yyyy-MM-dd
-    private static final String REGEX_DATE = "([0-9]{4})-(1[0-2]|0[1-9])-(3[0-1]|0[1-9]|[1-2][0-9])";
+    protected static final String DEFAULT_FORMAT = "yyyy-MM-dd";
 
     DateField() {
         super();
@@ -37,28 +34,21 @@ public class DateField extends Field<LocalDate> {
     }
 
     @Override
-    public LocalDate parseValue(String value, String format, Map<String, Object> options)
-            throws InvalidCastException, ConstraintsException {
-        if (format == null) {
-            Pattern pattern = Pattern.compile(REGEX_DATE);
-            Matcher matcher = pattern.matcher(value);
-            if (matcher.matches()) {
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-                TemporalAccessor dt = formatter.parse(value);
-                return LocalDate.from(dt);
-
-            } else {
-                throw new TypeInferringException();
-            }
-        } else {
-            return LocalDate.from(DateTimeFormatter.ofPattern(format).parse(value));
+    public LocalDate parseValue(String value, String format, Map<String, Object> options) throws InvalidCastException, ConstraintsException {
+        if (format == null || "default".equals(format)) {
+            format = DEFAULT_FORMAT;
         }
+        LocalDate parsedValue = TableSchemaUtil.parseDate(value, format);
+        if (parsedValue == null) {
+            throw new TypeInferringException();
+        }
+        return parsedValue;
     }
 
     @Override
     public String formatValueAsString(LocalDate value, String format, Map<String, Object> options) throws InvalidCastException, ConstraintsException {
-        if (format == null) {
-            return value.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        if (format == null || "default".equals(format)) {
+            return value.format(DateTimeFormatter.ofPattern(DEFAULT_FORMAT));
         } else {
             return value.format(DateTimeFormatter.ofPattern(format));
         }
@@ -76,13 +66,13 @@ public class DateField extends Field<LocalDate> {
             if (constraints.containsKey(CONSTRAINT_KEY_MINIMUM)) {
                 Object value = constraints.get(CONSTRAINT_KEY_MINIMUM);
                 if (value instanceof String) {
-                    constraints.put(CONSTRAINT_KEY_MINIMUM, LocalDate.from(DateTimeFormatter.ofPattern(getFormat()).parse((String)value)));
+                    constraints.put(CONSTRAINT_KEY_MINIMUM, parseValue((String)value, getFormat(), null));
                 }
             }
             if (constraints.containsKey(CONSTRAINT_KEY_MAXIMUM)) {
                 Object value = constraints.get(CONSTRAINT_KEY_MAXIMUM);
                 if (value instanceof String) {
-                    constraints.put(CONSTRAINT_KEY_MAXIMUM, LocalDate.from(DateTimeFormatter.ofPattern(getFormat()).parse((String)value)));
+                    constraints.put(CONSTRAINT_KEY_MAXIMUM, parseValue((String)value, getFormat(), null));
                 }
             }
         }

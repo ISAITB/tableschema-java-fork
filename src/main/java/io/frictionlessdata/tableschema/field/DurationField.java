@@ -43,4 +43,24 @@ public class DurationField extends Field<Duration> {
     public String parseFormat(String value, Map<String, Object> options) {
         return "default";
     }
+
+    @Override
+    public void validate() {
+        super.validate();
+        if (constraints != null) {
+            if (constraints.containsKey(CONSTRAINT_KEY_MINIMUM)) {
+                Object value = constraints.get(CONSTRAINT_KEY_MINIMUM);
+                if (value instanceof String) {
+                    constraints.put(CONSTRAINT_KEY_MINIMUM, Duration.parse((String)value));
+                }
+            }
+            if (constraints.containsKey(CONSTRAINT_KEY_MAXIMUM)) {
+                Object value = constraints.get(CONSTRAINT_KEY_MAXIMUM);
+                if (value instanceof String) {
+                    constraints.put(CONSTRAINT_KEY_MAXIMUM, Duration.parse((String)value));
+                }
+            }
+        }
+    }
+
 }
