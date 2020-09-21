@@ -714,6 +714,10 @@ public abstract class Field<T> {
         // Do nothing by default
     }
 
+    public boolean valueHasValidFormat(String value) {
+        return true;
+    }
+
     public static String formatValueAsString(Object value, Field<?> field) {
         String valueAsString = null;
         if (field instanceof DateField) {
