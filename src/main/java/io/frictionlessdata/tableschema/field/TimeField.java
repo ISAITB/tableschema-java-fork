@@ -9,12 +9,10 @@ import java.net.URI;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class TimeField extends Field<LocalTime> {
-    // An ISO8601 time string e.g. HH:mm:ss
-    private static final String REGEX_TIME = "(2[0-3]|[01]?[0-9]):?([0-5]?[0-9]):?([0-5]?[0-9])";
+
+    protected static final String DEFAULT_FORMAT = "HH:mm:ss";
 
     TimeField() {
         super();
@@ -37,32 +35,23 @@ public class TimeField extends Field<LocalTime> {
 
     @Override
     public LocalTime parseValue(String value, String format, Map<String, Object> options) throws InvalidCastException, ConstraintsException {
-
-        if (format == null) {
-            Pattern pattern = Pattern.compile(REGEX_TIME);
-            Matcher matcher = pattern.matcher(value);
-            if(matcher.matches()){
-                //DateTimeFormatter formatter = DateTimeFormat.forPattern("HH:mm:ss");
-                //DateTime dt = formatter.parseDateTime(value);
-                return LocalTime.parse(value);
-            }else{
-                throw new TypeInferringException();
-            }
-
-        } else {
-            return LocalTime.from(DateTimeFormatter.ofPattern(format).parse(value));
+        if (format == null || "default".equals(format)) {
+            format = DEFAULT_FORMAT;
         }
-
+        LocalTime parsedValue = TableSchemaUtil.parseTime(value, format);
+        if (parsedValue == null) {
+            throw new TypeInferringException();
+        }
+        return parsedValue;
     }
 
     @Override
     public String formatValueAsString(LocalTime value, String format, Map<String, Object> options) throws InvalidCastException, ConstraintsException {
-        if (format == null) {
-            return value.format(DateTimeFormatter.ISO_LOCAL_TIME);
+        if (format == null || "default".equals(format)) {
+            return value.format(DateTimeFormatter.ofPattern(DEFAULT_FORMAT));
         } else {
             return value.format(DateTimeFormatter.ofPattern(format));
         }
-        //return value.toString(DateTimeFormat.forPattern("HH:mm:ss"));
     }
 
     @Override
@@ -77,13 +66,13 @@ public class TimeField extends Field<LocalTime> {
             if (constraints.containsKey(CONSTRAINT_KEY_MINIMUM)) {
                 Object value = constraints.get(CONSTRAINT_KEY_MINIMUM);
                 if (value instanceof String) {
-                    constraints.put(CONSTRAINT_KEY_MINIMUM, LocalTime.from(DateTimeFormatter.ofPattern(getFormat()).parse((String)value)));
+                    constraints.put(CONSTRAINT_KEY_MINIMUM, parseValue((String)value, getFormat(), null));
                 }
             }
             if (constraints.containsKey(CONSTRAINT_KEY_MAXIMUM)) {
                 Object value = constraints.get(CONSTRAINT_KEY_MAXIMUM);
                 if (value instanceof String) {
-                    constraints.put(CONSTRAINT_KEY_MAXIMUM, LocalTime.from(DateTimeFormatter.ofPattern(getFormat()).parse((String)value)));
+                    constraints.put(CONSTRAINT_KEY_MAXIMUM, parseValue((String)value, getFormat(), null));
                 }
             }
         }

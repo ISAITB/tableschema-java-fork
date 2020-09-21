@@ -367,6 +367,12 @@ public abstract class Field<T> {
                     violatedConstraints.put(CONSTRAINT_KEY_MINIMUM, minDate);
                 }
 
+            }else if(value instanceof Year){
+                Year minDate = (Year)this.constraints.get(CONSTRAINT_KEY_MINIMUM);
+                if(((Year)value).isBefore(minDate)){
+                    violatedConstraints.put(CONSTRAINT_KEY_MINIMUM, minDate);
+                }
+
             }else if(value instanceof YearMonth){
                 YearMonth minDate = (YearMonth)this.constraints.get(CONSTRAINT_KEY_MINIMUM);
                 if(((YearMonth)value).isBefore(minDate)){
@@ -416,8 +422,14 @@ public abstract class Field<T> {
                     violatedConstraints.put(CONSTRAINT_KEY_MAXIMUM, maxDate);
                 }
 
+            }else if(value instanceof Year){
+                Year maxDate = (Year)this.constraints.get(CONSTRAINT_KEY_MAXIMUM);
+
+                if(((Year)value).isAfter(maxDate)){
+                    violatedConstraints.put(CONSTRAINT_KEY_MAXIMUM, maxDate);
+                }
+
             }else if(value instanceof YearMonth){
-                // TODO FIX
                 YearMonth maxDate = (YearMonth)this.constraints.get(CONSTRAINT_KEY_MAXIMUM);
 
                 if(((YearMonth)value).isAfter(maxDate)){
@@ -425,7 +437,6 @@ public abstract class Field<T> {
                 }
 
             }else if(value instanceof Duration){
-                // TODO FIX
                 Duration maxDuration = (Duration)this.constraints.get(CONSTRAINT_KEY_MAXIMUM);
                 if(((Duration)value).compareTo(maxDuration) > 0){
                     violatedConstraints.put(CONSTRAINT_KEY_MAXIMUM, maxDuration);
