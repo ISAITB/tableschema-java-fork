@@ -8,6 +8,8 @@ import io.frictionlessdata.tableschema.util.TableSchemaUtil;
 import java.net.URI;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class TimeField extends Field<LocalTime> {
@@ -74,6 +76,18 @@ public class TimeField extends Field<LocalTime> {
                 if (value instanceof String) {
                     constraints.put(CONSTRAINT_KEY_MAXIMUM, parseValue((String)value, getFormat(), null));
                 }
+            }
+            if (constraints.containsKey(CONSTRAINT_KEY_ENUM)) {
+                List<?> values = (List<?>)constraints.get(CONSTRAINT_KEY_ENUM);
+                List<LocalTime> valuesToUse = new ArrayList<>(values.size());
+                for (Object value: values) {
+                    if (value instanceof LocalTime) {
+                        valuesToUse.add((LocalTime) value);
+                    } else {
+                        valuesToUse.add(parseValue(value.toString(), getFormat(), null));
+                    }
+                }
+                constraints.put(CONSTRAINT_KEY_ENUM, valuesToUse);
             }
         }
     }

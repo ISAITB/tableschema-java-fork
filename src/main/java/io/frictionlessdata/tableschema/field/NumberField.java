@@ -8,7 +8,9 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -209,4 +211,25 @@ public class NumberField extends Field<Number> {
         }
         return options;
     }
+
+    @Override
+    public void validate() {
+        super.validate();
+        if (constraints != null) {
+            if (constraints.containsKey(CONSTRAINT_KEY_ENUM)) {
+                // Items can be string or number
+                List<?> values = (List<?>)constraints.get(CONSTRAINT_KEY_ENUM);
+                List<Double> valuesToUse = new ArrayList<>(values.size());
+                for (Object value: values) {
+                    if (value instanceof Double) {
+                        valuesToUse.add((Double)value);
+                    } else {
+                        valuesToUse.add(Double.valueOf(value.toString()));
+                    }
+                }
+                constraints.put(CONSTRAINT_KEY_ENUM, valuesToUse);
+            }
+        }
+    }
+
 }

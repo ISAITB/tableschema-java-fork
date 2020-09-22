@@ -5,7 +5,9 @@ import io.frictionlessdata.tableschema.exception.InvalidCastException;
 
 import java.math.BigInteger;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -60,6 +62,26 @@ public class IntegerField extends Field<BigInteger> {
             options.put(NumberField.NUMBER_OPTION_BARE_NUMBER, bareNumber);
         }
         return options;
+    }
+
+    @Override
+    public void validate() {
+        super.validate();
+        if (constraints != null) {
+            if (constraints.containsKey(CONSTRAINT_KEY_ENUM)) {
+                // Items can be string or number
+                List<?> values = (List<?>)constraints.get(CONSTRAINT_KEY_ENUM);
+                List<Integer> valuesToUse = new ArrayList<>(values.size());
+                for (Object value: values) {
+                    if (value instanceof Integer) {
+                        valuesToUse.add((Integer)value);
+                    } else {
+                        valuesToUse.add(Integer.valueOf(value.toString()));
+                    }
+                }
+                constraints.put(CONSTRAINT_KEY_ENUM, valuesToUse);
+            }
+        }
     }
 
 }

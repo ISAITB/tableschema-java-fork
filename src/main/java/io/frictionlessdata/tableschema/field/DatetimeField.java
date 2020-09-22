@@ -6,13 +6,11 @@ import io.frictionlessdata.tableschema.exception.TypeInferringException;
 import io.frictionlessdata.tableschema.util.TableSchemaUtil;
 
 import java.net.URI;
-import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAccessor;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class DatetimeField extends Field<ZonedDateTime> {
 
@@ -80,6 +78,18 @@ public class DatetimeField extends Field<ZonedDateTime> {
                 if (value instanceof String) {
                     constraints.put(CONSTRAINT_KEY_MAXIMUM, parseValue((String)value, getFormat(), null));
                 }
+            }
+            if (constraints.containsKey(CONSTRAINT_KEY_ENUM)) {
+                List<?> values = (List<?>)constraints.get(CONSTRAINT_KEY_ENUM);
+                List<ZonedDateTime> valuesToUse = new ArrayList<>(values.size());
+                for (Object value: values) {
+                    if (value instanceof ZonedDateTime) {
+                        valuesToUse.add((ZonedDateTime) value);
+                    } else {
+                        valuesToUse.add(parseValue(value.toString(), getFormat(), null));
+                    }
+                }
+                constraints.put(CONSTRAINT_KEY_ENUM, valuesToUse);
             }
         }
     }
