@@ -6,8 +6,9 @@ import io.frictionlessdata.tableschema.exception.TypeInferringException;
 
 import java.net.URI;
 import java.time.Year;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -73,6 +74,18 @@ public class YearField extends Field<Year> {
                 if (value instanceof String) {
                     constraints.put(CONSTRAINT_KEY_MAXIMUM, Year.from(DateTimeFormatter.ofPattern("yyyy").parse((String)value)));
                 }
+            }
+            if (constraints.containsKey(CONSTRAINT_KEY_ENUM)) {
+                List<?> values = (List<?>)constraints.get(CONSTRAINT_KEY_ENUM);
+                List<Year> valuesToUse = new ArrayList<>(values.size());
+                for (Object value: values) {
+                    if (value instanceof Year) {
+                        valuesToUse.add((Year)value);
+                    } else {
+                        valuesToUse.add(parseValue(value.toString(), getFormat(), null));
+                    }
+                }
+                constraints.put(CONSTRAINT_KEY_ENUM, valuesToUse);
             }
         }
     }

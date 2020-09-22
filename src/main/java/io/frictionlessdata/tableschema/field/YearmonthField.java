@@ -6,9 +6,10 @@ import io.frictionlessdata.tableschema.exception.TypeInferringException;
 
 import java.net.URI;
 import java.time.YearMonth;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -72,6 +73,18 @@ public class YearmonthField extends Field<YearMonth> {
                 if (value instanceof String) {
                     constraints.put(CONSTRAINT_KEY_MAXIMUM, YearMonth.from(DateTimeFormatter.ofPattern("yyyy-MM").parse((String)value)));
                 }
+            }
+            if (constraints.containsKey(CONSTRAINT_KEY_ENUM)) {
+                List<?> values = (List<?>)constraints.get(CONSTRAINT_KEY_ENUM);
+                List<YearMonth> valuesToUse = new ArrayList<>(values.size());
+                for (Object value: values) {
+                    if (value instanceof YearMonth) {
+                        valuesToUse.add((YearMonth) value);
+                    } else {
+                        valuesToUse.add(parseValue(value.toString(), getFormat(), null));
+                    }
+                }
+                constraints.put(CONSTRAINT_KEY_ENUM, valuesToUse);
             }
         }
     }

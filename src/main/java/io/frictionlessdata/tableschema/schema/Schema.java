@@ -1,11 +1,5 @@
 package io.frictionlessdata.tableschema.schema;
 
-import java.io.*;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -13,7 +7,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import io.frictionlessdata.tableschema.exception.*;
 import io.frictionlessdata.tableschema.field.Field;
 import io.frictionlessdata.tableschema.fk.ForeignKey;
@@ -21,6 +14,12 @@ import io.frictionlessdata.tableschema.io.FileReference;
 import io.frictionlessdata.tableschema.io.LocalFileReference;
 import io.frictionlessdata.tableschema.io.URLFileReference;
 import io.frictionlessdata.tableschema.util.JsonUtil;
+
+import java.io.*;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -33,14 +32,16 @@ public class Schema {
     public static final String JSON_KEY_FIELDS = "fields";
     public static final String JSON_KEY_PRIMARY_KEY = "primaryKey";
     public static final String JSON_KEY_FOREIGN_KEYS = "foreignKeys";
-    
+    public static final String JSON_KEY_MISSING_VALUES = "missingValues";
+
     private JsonSchema tableJsonSchema = null;
-    private List<Field> fields = new ArrayList();
+    private List<Field> fields = new ArrayList<>();
     private Object primaryKey = null;
-    private List<ForeignKey> foreignKeys = new ArrayList();
+    private List<ForeignKey> foreignKeys = new ArrayList<>();
+    private Set<String> missingValues = new HashSet<>();
     
     private boolean strictValidation = true;
-    private List<Exception> errors = new ArrayList();
+    private List<Exception> errors = new ArrayList<>();
 
     @JsonIgnore
     FileReference reference;
@@ -214,6 +215,15 @@ public class Schema {
                 } 
             });
         }
+
+        // Set missing values
+        if (schemaObj.has(JSON_KEY_MISSING_VALUES)) {
+            JsonNode valueArray = schemaObj.withArray(JSON_KEY_MISSING_VALUES);
+            valueArray.forEach((v) -> missingValues.add(v.textValue()));
+        }
+        if (missingValues.isEmpty()) {
+            missingValues.add("");
+        }
     }
     
     private void initValidator(){
@@ -275,7 +285,8 @@ public class Schema {
                      }
                  }
              }
-            for (Field f: getFields()) {
+            for (Field<?> f: getFields()) {
+                f.setMissingValues(getMissingValues());
                 f.validate();
             }
         }catch(ValidationException ve){
@@ -459,6 +470,14 @@ public class Schema {
     
     public void addForeignKey(ForeignKey foreignKey){
         this.foreignKeys.add(foreignKey);
+    }
+
+    public Set<String> getMissingValues() {
+        return missingValues;
+    }
+
+    public void setMissingValues(Set<String> missingValues) {
+        this.missingValues = missingValues;
     }
 
     /**

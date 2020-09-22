@@ -9,7 +9,6 @@ import io.frictionlessdata.tableschema.exception.InvalidCastException;
 import io.frictionlessdata.tableschema.util.JsonUtil;
 import org.apache.commons.lang3.StringUtils;
 
-import java.math.BigInteger;
 import java.net.URI;
 import java.time.*;
 import java.util.*;
@@ -153,6 +152,7 @@ public abstract class Field<T> {
     Map<String, Object> options = null;
 
     private Set<Object> existingValues = null;
+    private Set<String> missingValues = null;
 
     /**
      * Constructor for our reflection-based instantiation only
@@ -228,7 +228,7 @@ public abstract class Field<T> {
     public T castValue(String value, boolean enforceConstraints, Map<String, Object> options) throws InvalidCastException, ConstraintsException{
         if(this.type.isEmpty()){
             throw new InvalidCastException("Property 'type' must not be empty");
-        } else if (StringUtils.isEmpty(value)) {
+        } else if (missingValues.contains(value)) {
             return null;
         } else {
             try{
@@ -489,17 +489,27 @@ public abstract class Field<T> {
                     }
                 }
                 
-            }else if(value instanceof Integer){
-                List<Integer> intList = (List<Integer>)this.constraints.get(CONSTRAINT_KEY_ENUM);
-                
-                Iterator<Integer> iter = intList.iterator();
-                while(iter.hasNext()){
-                    if(iter.next() == (int)value){
-                        violatesEnumConstraint = false;
-                        break;
+            }else if(value instanceof Number){
+                if (this instanceof IntegerField) {
+                    List<Integer> intList = (List<Integer>)this.constraints.get(CONSTRAINT_KEY_ENUM);
+                    Iterator<Integer> iter = intList.iterator();
+                    while (iter.hasNext()){
+                        if(iter.next() == ((Number)value).intValue()){
+                            violatesEnumConstraint = false;
+                            break;
+                        }
+                    }
+                } else {
+                    List<Double> intList = (List<Double>)this.constraints.get(CONSTRAINT_KEY_ENUM);
+                    Iterator<Double> iter = intList.iterator();
+                    while (iter.hasNext()){
+                        if(iter.next() == ((Number)value).doubleValue()){
+                            violatesEnumConstraint = false;
+                            break;
+                        }
                     }
                 }
-                
+
             }else if(value instanceof LocalTime){
                 List<LocalTime> timeList = (List<LocalTime>)this.constraints.get(CONSTRAINT_KEY_ENUM);
 
@@ -532,10 +542,21 @@ public abstract class Field<T> {
                     }
                 }
 
-            }else if(value instanceof YearMonth){
-                List<YearMonth> dateTimeList = (List<YearMonth>)this.constraints.get(CONSTRAINT_KEY_ENUM);
+            }else if(value instanceof Year){
+                List<Year> yearList = (List<Year>)this.constraints.get(CONSTRAINT_KEY_ENUM);
 
-                Iterator<YearMonth> iter = dateTimeList.iterator();
+                Iterator<Year> iter = yearList.iterator();
+                while(iter.hasNext()){
+                    if(iter.next().compareTo((Year)value) == 0){
+                        violatesEnumConstraint = false;
+                        break;
+                    }
+                }
+
+            }else if(value instanceof YearMonth){
+                List<YearMonth> yearMonthList = (List<YearMonth>)this.constraints.get(CONSTRAINT_KEY_ENUM);
+
+                Iterator<YearMonth> iter = yearMonthList.iterator();
                 while(iter.hasNext()){
                     if(iter.next().compareTo((YearMonth)value) == 0){
                         violatesEnumConstraint = false;
@@ -708,6 +729,14 @@ public abstract class Field<T> {
                 ", format='" + format + '\'' +
                 ", title='" + title + '\'' +
                 '}';
+    }
+
+    public Set<String> getMissingValues() {
+        return missingValues;
+    }
+
+    public void setMissingValues(Set<String> missingValues) {
+        this.missingValues = missingValues;
     }
 
     public void validate() {
