@@ -3,22 +3,23 @@ package io.frictionlessdata.tableschema.field;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.frictionlessdata.tableschema.exception.ConstraintsException;
 import io.frictionlessdata.tableschema.exception.InvalidCastException;
-import io.frictionlessdata.tableschema.exception.TypeInferringException;
-import io.frictionlessdata.tableschema.util.JsonUtil;
 
 import java.net.URI;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class BooleanField extends Field<Boolean> {
-    @JsonIgnore
-    private static final List<String> defaultTrueValues = Arrays.asList("true", "True", "TRUE", "1");
+
+    private static final String BOOLEAN_OPTION_TRUE_VALUES = "trueValues";
+    private static final String BOOLEAN_OPTION_FALSE_VALUES = "falseValues";
 
     @JsonIgnore
-    private static final List<String> defaultFalseValues = Arrays.asList("false", "False", "FALSE", "0");
+    private static final List<String> DEFAULT_TRUE_VALUES = Arrays.asList("true", "True", "TRUE", "1");
 
-    private List<String> trueValues = null;
-    private List<String> falseValues = null;
+    @JsonIgnore
+    private static final List<String> DEFAULT_FALSE_VALUES = Arrays.asList("false", "False", "FALSE", "0");
+
+    private List<String> trueValues = DEFAULT_TRUE_VALUES;
+    private List<String> falseValues = DEFAULT_FALSE_VALUES;
 
 
     BooleanField() {
@@ -45,23 +46,25 @@ public class BooleanField extends Field<Boolean> {
     @Override
     public Boolean parseValue(String value, String format, Map<String, Object> options)
             throws InvalidCastException, ConstraintsException {
+        List<String> trueValuesToUse = trueValues;
+        List<String> falseValuesToUse = falseValues;
         if (null != options) {
-            if (options.containsKey("trueValues")) {
-                trueValues = new ArrayList<>((Collection) options.get("trueValues"));
+            if (options.containsKey(BOOLEAN_OPTION_TRUE_VALUES)) {
+                trueValuesToUse = (List<String>)options.get(BOOLEAN_OPTION_TRUE_VALUES);
             }
-            if (options.containsKey("falseValues")) {
-                falseValues = new ArrayList<>((Collection) options.get("falseValues"));
+            if (options.containsKey(BOOLEAN_OPTION_FALSE_VALUES)) {
+                falseValuesToUse = (List<String>)options.get(BOOLEAN_OPTION_FALSE_VALUES);
             }
         }
 
-        if (_getActualTrueValues().contains(value)){
+        if (trueValuesToUse.contains(value)){
             return true;
 
-        }else if (_getActualFalseValues().contains(value)){
+        }else if (falseValuesToUse.contains(value)){
             return false;
 
         }else{
-            throw new InvalidCastException("Value "+value+" not in 'trueValues' or 'falseValues'");
+            throw new InvalidCastException("Value "+value+" not in '"+BOOLEAN_OPTION_TRUE_VALUES+"' or '"+BOOLEAN_OPTION_FALSE_VALUES+"'");
         }
     }
 
@@ -77,11 +80,11 @@ public class BooleanField extends Field<Boolean> {
         String trueValue = _getActualTrueValues().get(0);
         String falseValue = _getActualFalseValues().get(0);
         if (null != options) {
-            if (options.containsKey("trueValues")) {
-                trueValue = new ArrayList<String>((Collection) options.get("trueValues")).iterator().next();
+            if (options.containsKey(BOOLEAN_OPTION_TRUE_VALUES)) {
+                trueValue = new ArrayList<String>((Collection) options.get(BOOLEAN_OPTION_TRUE_VALUES)).iterator().next();
             }
-            if (options.containsKey("falseValues")) {
-                falseValue = new ArrayList<String>((Collection) options.get("falseValues")).iterator().next();
+            if (options.containsKey(BOOLEAN_OPTION_FALSE_VALUES)) {
+                falseValue = new ArrayList<String>((Collection) options.get(BOOLEAN_OPTION_FALSE_VALUES)).iterator().next();
             }
         }
         return (value) ? trueValue : falseValue;
@@ -107,14 +110,25 @@ public class BooleanField extends Field<Boolean> {
     @JsonIgnore
     private List<String> _getActualTrueValues() {
         if ((null == trueValues) || (trueValues.isEmpty()))
-            return defaultTrueValues;
+            return DEFAULT_TRUE_VALUES;
         return trueValues;
     }
 
     @JsonIgnore
     private List<String> _getActualFalseValues() {
         if ((null == falseValues) || (falseValues.isEmpty()))
-            return defaultFalseValues;
+            return DEFAULT_FALSE_VALUES;
         return falseValues;
     }
+
+    @Override
+    public Map<String, Object> getOptions() {
+        if (options == null) {
+            options = new HashMap<>();
+            options.put(BOOLEAN_OPTION_FALSE_VALUES, falseValues);
+            options.put(BOOLEAN_OPTION_TRUE_VALUES, trueValues);
+        }
+        return options;
+    }
+
 }

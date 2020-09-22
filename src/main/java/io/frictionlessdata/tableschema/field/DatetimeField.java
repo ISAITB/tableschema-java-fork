@@ -40,7 +40,7 @@ public class DatetimeField extends Field<ZonedDateTime> {
     @Override
     public ZonedDateTime parseValue(String value, String format, Map<String, Object> options)
             throws InvalidCastException, ConstraintsException {
-        if (format == null || "default".equals(format)) {
+        if (format == null || "any".equals(format) || "default".equals(format)) {
             format = DEFAULT_FORMAT;
         }
         ZonedDateTime parsedValue = TableSchemaUtil.parseDateTime(value, format);
@@ -52,7 +52,7 @@ public class DatetimeField extends Field<ZonedDateTime> {
 
     @Override
     public String formatValueAsString(ZonedDateTime value, String format, Map<String, Object> options) throws InvalidCastException, ConstraintsException {
-        if (format == null || "default".equals(format)) {
+        if (format == null || "any".equals(format) || "default".equals(format)) {
             return value.format(DateTimeFormatter.ofPattern(DEFAULT_FORMAT));
         } else {
             return value.format(DateTimeFormatter.ofPattern(format));

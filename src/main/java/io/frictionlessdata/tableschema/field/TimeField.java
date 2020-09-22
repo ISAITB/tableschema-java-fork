@@ -35,7 +35,7 @@ public class TimeField extends Field<LocalTime> {
 
     @Override
     public LocalTime parseValue(String value, String format, Map<String, Object> options) throws InvalidCastException, ConstraintsException {
-        if (format == null || "default".equals(format)) {
+        if (format == null || "any".equals(format) || "default".equals(format)) {
             format = DEFAULT_FORMAT;
         }
         LocalTime parsedValue = TableSchemaUtil.parseTime(value, format);
@@ -47,7 +47,7 @@ public class TimeField extends Field<LocalTime> {
 
     @Override
     public String formatValueAsString(LocalTime value, String format, Map<String, Object> options) throws InvalidCastException, ConstraintsException {
-        if (format == null || "default".equals(format)) {
+        if (format == null || "any".equals(format) || "default".equals(format)) {
             return value.format(DateTimeFormatter.ofPattern(DEFAULT_FORMAT));
         } else {
             return value.format(DateTimeFormatter.ofPattern(format));

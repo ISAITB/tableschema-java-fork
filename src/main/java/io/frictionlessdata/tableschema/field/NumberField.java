@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
 import java.text.NumberFormat;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,7 +22,7 @@ import java.util.regex.Pattern;
 public class NumberField extends Field<Number> {
     private static final String NUMBER_OPTION_DECIMAL_CHAR = "decimalChar";
     private static final String NUMBER_OPTION_GROUP_CHAR = "groupChar";
-    private static final String NUMBER_OPTION_BARE_NUMBER = "bareNumber";
+    static final String NUMBER_OPTION_BARE_NUMBER = "bareNumber";
     private static final String NUMBER_DEFAULT_DECIMAL_CHAR = ".";
     private static final String NUMBER_DEFAULT_GROUP_CHAR = "";
 
@@ -34,6 +35,10 @@ public class NumberField extends Field<Number> {
         numberFormat.setGroupingUsed(false);
     }
 
+    private boolean bareNumber = true;
+    private String decimalChar = NUMBER_DEFAULT_DECIMAL_CHAR;
+    private String groupChar = NUMBER_DEFAULT_GROUP_CHAR;
+
     NumberField() {
         super();
     }
@@ -45,6 +50,30 @@ public class NumberField extends Field<Number> {
     public NumberField(String name, String format, String title, String description,
                        URI rdfType, Map constraints, Map options){
         super(name, FIELD_TYPE_NUMBER, format, title, description, rdfType, constraints, options);
+    }
+
+    public boolean isBareNumber() {
+        return bareNumber;
+    }
+
+    public void setBareNumber(boolean bareNumber) {
+        this.bareNumber = bareNumber;
+    }
+
+    public String getDecimalChar() {
+        return decimalChar;
+    }
+
+    public void setDecimalChar(String decimalChar) {
+        this.decimalChar = decimalChar;
+    }
+
+    public String getGroupChar() {
+        return groupChar;
+    }
+
+    public void setGroupChar(String groupChar) {
+        this.groupChar = groupChar;
     }
 
     @Override
@@ -65,7 +94,9 @@ public class NumberField extends Field<Number> {
                 }
 
                 if(options.containsKey(NUMBER_OPTION_BARE_NUMBER) && !(boolean)options.get(NUMBER_OPTION_BARE_NUMBER)){
-                    locValue = locValue.replaceAll(REGEX_BARE_NUMBER, "");
+                    if (!(locValue.equalsIgnoreCase("NaN") || locValue.equalsIgnoreCase("INF") || locValue.equalsIgnoreCase("-INF"))) {
+                        locValue = locValue.replaceAll(REGEX_BARE_NUMBER, "");
+                    }
                 }
             }
 
@@ -166,5 +197,16 @@ public class NumberField extends Field<Number> {
     @Override
     public String parseFormat(String value, Map<String, Object> options) {
         return "default";
+    }
+
+    @Override
+    public Map<String, Object> getOptions() {
+        if (options == null) {
+            options = new HashMap<>();
+            options.put(NUMBER_OPTION_DECIMAL_CHAR, decimalChar);
+            options.put(NUMBER_OPTION_GROUP_CHAR, groupChar);
+            options.put(NUMBER_OPTION_BARE_NUMBER, bareNumber);
+        }
+        return options;
     }
 }

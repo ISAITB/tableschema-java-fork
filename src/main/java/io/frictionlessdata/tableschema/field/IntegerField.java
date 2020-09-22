@@ -5,6 +5,7 @@ import io.frictionlessdata.tableschema.exception.InvalidCastException;
 
 import java.math.BigInteger;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -12,6 +13,8 @@ import java.util.Map;
  * consists of "a non-empty finite-length sequence of decimal digits".
  */
 public class IntegerField extends Field<BigInteger> {
+
+    private boolean bareNumber = true;
 
     IntegerField() {
         super();
@@ -24,6 +27,14 @@ public class IntegerField extends Field<BigInteger> {
     public IntegerField(String name, String format, String title, String description,
                         URI rdfType, Map constraints, Map options) {
         super(name, FIELD_TYPE_INTEGER, format, title, description, rdfType, constraints, options);
+    }
+
+    public boolean isBareNumber() {
+        return bareNumber;
+    }
+
+    public void setBareNumber(boolean bareNumber) {
+        this.bareNumber = bareNumber;
     }
 
     @Override
@@ -41,4 +52,14 @@ public class IntegerField extends Field<BigInteger> {
     public String parseFormat(String value, Map<String, Object> options) {
         return "default";
     }
+
+    @Override
+    public Map<String, Object> getOptions() {
+        if (options == null) {
+            options = new HashMap<>();
+            options.put(NumberField.NUMBER_OPTION_BARE_NUMBER, bareNumber);
+        }
+        return options;
+    }
+
 }
