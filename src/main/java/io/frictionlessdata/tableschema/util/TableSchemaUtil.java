@@ -1,7 +1,6 @@
 package io.frictionlessdata.tableschema.util;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -53,6 +52,19 @@ public class TableSchemaUtil {
         return null;
     }
 
+    public static String prepareDateFormat(String format, boolean javaBasedDateFormats) {
+        if (format == null) {
+            return null;
+        }
+        // Check first if this is a Java-based format. If not parse as python.
+        if (javaBasedDateFormats || format.indexOf('%') == -1) {
+            // All python-based formats must define the '%' character.
+            return format;
+        } else {
+            return pythonDateFormatToJavaDateFormat(format);
+        }
+    }
+
     public static String pythonDateFormatToJavaDateFormat(String pythonFormat) {
         if (pythonFormat == null) {
           return null;
@@ -62,22 +74,31 @@ public class TableSchemaUtil {
                 .replaceAll("%A", "EEEE")
                 .replaceAll("%w", "e") // TODO problem with Sunday (0 should be 7)
                 .replaceAll("%d", "dd")
+                .replaceAll("%-d", "d")
+                .replaceAll("%e", " d")
                 .replaceAll("%b", "MMM")
                 .replaceAll("%B", "MMMM")
                 .replaceAll("%m", "MM")
+                .replaceAll("%-m", "M")
+                .replaceAll("%-y", "y")
                 .replaceAll("%y", "yy")
                 .replaceAll("%Y", "yyyy")
                 .replaceAll("%H", "HH")
+                .replaceAll("%-H", "H")
                 .replaceAll("%I", "hh")
+                .replaceAll("%-I", "h")
                 .replaceAll("%p", "a")
                 .replaceAll("%M", "mm")
+                .replaceAll("%-M", "m")
                 .replaceAll("%S", "ss")
+                .replaceAll("%-S", "s")
                 .replaceAll("%f", "SSSSSS")
                 .replaceAll("%z", "Z")
                 .replaceAll("%Z", "zzz")
                 .replaceAll("%j", "D")
                 .replaceAll("%U", "W")
                 .replaceAll("%W", "W")
+                .replaceAll("%C", "YY")
                 .replaceAll("%%", "%")
                 ;
     }

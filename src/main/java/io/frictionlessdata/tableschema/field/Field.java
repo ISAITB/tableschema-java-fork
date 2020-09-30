@@ -153,6 +153,7 @@ public abstract class Field<T> {
 
     private Set<Object> existingValues = null;
     private Set<String> missingValues = null;
+    private boolean javaBasedDateFormats = false;
 
     /**
      * Constructor for our reflection-based instantiation only
@@ -737,6 +738,14 @@ public abstract class Field<T> {
 
     public void setMissingValues(Set<String> missingValues) {
         this.missingValues = missingValues;
+    }
+
+    public boolean isJavaBasedDateFormats() {
+        return javaBasedDateFormats;
+    }
+
+    public void setJavaBasedDateFormats(boolean javaBasedDateFormats) {
+        this.javaBasedDateFormats = javaBasedDateFormats;
     }
 
     public void validate() {

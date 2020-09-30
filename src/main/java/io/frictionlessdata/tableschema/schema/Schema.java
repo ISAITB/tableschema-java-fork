@@ -34,12 +34,15 @@ public class Schema {
     public static final String JSON_KEY_FOREIGN_KEYS = "foreignKeys";
     public static final String JSON_KEY_MISSING_VALUES = "missingValues";
 
+    public static final String SCHEMA_OPTION_JAVA_BASED_DATE_FORMATS = "javaBasedDateFormats";
+
     private JsonSchema tableJsonSchema = null;
     private List<Field> fields = new ArrayList<>();
     private Object primaryKey = null;
     private List<ForeignKey> foreignKeys = new ArrayList<>();
     private Set<String> missingValues = new HashSet<>();
-    
+    private boolean javaBasedDateFormats = false;
+
     private boolean strictValidation = true;
     private List<Exception> errors = new ArrayList<>();
 
@@ -85,8 +88,17 @@ public class Schema {
      * @throws Exception thrown if reading from the stream or parsing throws an exception
      */
     public static Schema fromJson (InputStream inStream, boolean strict) throws IOException {
+        return fromJsonWithOptions(inStream, strict, null);
+    }
+
+    public static Schema fromJsonWithOptions (InputStream inStream, boolean strict, Map<String, String> schemaOptions) throws IOException {
         Schema schema = new Schema(strict);
         schema.initSchemaFromStream(inStream);
+        if (schemaOptions != null) {
+            if (schemaOptions.getOrDefault(SCHEMA_OPTION_JAVA_BASED_DATE_FORMATS, "false").equalsIgnoreCase("true")) {
+                schema.setJavaBasedDateFormats(true);
+            }
+        }
         schema.validate();
         return schema;
     }
@@ -286,6 +298,7 @@ public class Schema {
                  }
              }
             for (Field<?> f: getFields()) {
+                f.setJavaBasedDateFormats(isJavaBasedDateFormats());
                 f.setMissingValues(getMissingValues());
                 f.validate();
             }
@@ -478,6 +491,14 @@ public class Schema {
 
     public void setMissingValues(Set<String> missingValues) {
         this.missingValues = missingValues;
+    }
+
+    public boolean isJavaBasedDateFormats() {
+        return javaBasedDateFormats;
+    }
+
+    public void setJavaBasedDateFormats(boolean javaBasedDateFormats) {
+        this.javaBasedDateFormats = javaBasedDateFormats;
     }
 
     /**
