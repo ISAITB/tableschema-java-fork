@@ -31,7 +31,7 @@ public class DatetimeField extends Field<ZonedDateTime> {
 
     @Override
     public void setFormat(String format) {
-        super.setFormat(TableSchemaUtil.pythonDateFormatToJavaDateFormat(format));
+        super.setFormat(TableSchemaUtil.prepareDateFormat(format, isJavaBasedDateFormats()));
         super.setDefinedFormat(format);
     }
 
