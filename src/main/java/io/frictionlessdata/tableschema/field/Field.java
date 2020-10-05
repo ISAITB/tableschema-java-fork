@@ -466,120 +466,124 @@ public abstract class Field<T> {
         
         // The value of the field must exactly match a value in the enum array.
         if(this.constraints.containsKey(CONSTRAINT_KEY_ENUM)){
-            boolean violatesEnumConstraint = true;
-            
-            if(value instanceof String){
-                List<String> stringList = (List<String>)this.constraints.get(CONSTRAINT_KEY_ENUM); 
-                
-                Iterator<String> iter = stringList.iterator();
-                while(iter.hasNext()){
-                    if(iter.next().equalsIgnoreCase((String)value)){
-                        violatesEnumConstraint = false;
-                        break;
-                    }
-                }
-                
-            }else if(value instanceof JsonNode){
-                List<JsonNode> jsonObjList = (List<JsonNode>)this.constraints.get(CONSTRAINT_KEY_ENUM);
-                
-                Iterator<JsonNode> iter = jsonObjList.iterator();
-                while(iter.hasNext()){
-                    if(iter.next().equals((JsonNode)value)){
-                        violatesEnumConstraint = false;
-                        break;
-                    }
-                }
-                
-            }else if(value instanceof Number){
-                if (this instanceof IntegerField) {
-                    List<Integer> intList = (List<Integer>)this.constraints.get(CONSTRAINT_KEY_ENUM);
-                    Iterator<Integer> iter = intList.iterator();
-                    while (iter.hasNext()){
-                        if(iter.next() == ((Number)value).intValue()){
+            if (value != null) {
+                // A null value would never be checked against a set of enum values.
+
+                boolean violatesEnumConstraint = true;
+
+                if(value instanceof String){
+                    List<String> stringList = (List<String>)this.constraints.get(CONSTRAINT_KEY_ENUM);
+
+                    Iterator<String> iter = stringList.iterator();
+                    while(iter.hasNext()){
+                        if(iter.next().equalsIgnoreCase((String)value)){
                             violatesEnumConstraint = false;
                             break;
                         }
                     }
-                } else {
-                    List<Double> intList = (List<Double>)this.constraints.get(CONSTRAINT_KEY_ENUM);
-                    Iterator<Double> iter = intList.iterator();
-                    while (iter.hasNext()){
-                        if(iter.next() == ((Number)value).doubleValue()){
+
+                }else if(value instanceof JsonNode){
+                    List<JsonNode> jsonObjList = (List<JsonNode>)this.constraints.get(CONSTRAINT_KEY_ENUM);
+
+                    Iterator<JsonNode> iter = jsonObjList.iterator();
+                    while(iter.hasNext()){
+                        if(iter.next().equals((JsonNode)value)){
                             violatesEnumConstraint = false;
                             break;
                         }
                     }
-                }
 
-            }else if(value instanceof LocalTime){
-                List<LocalTime> timeList = (List<LocalTime>)this.constraints.get(CONSTRAINT_KEY_ENUM);
-
-                Iterator<LocalTime> iter = timeList.iterator();
-                while(iter.hasNext()){
-                    if(iter.next().compareTo((LocalTime)value) == 0){
-                        violatesEnumConstraint = false;
-                        break;
+                }else if(value instanceof Number){
+                    if (this instanceof IntegerField) {
+                        List<Integer> intList = (List<Integer>)this.constraints.get(CONSTRAINT_KEY_ENUM);
+                        Iterator<Integer> iter = intList.iterator();
+                        while (iter.hasNext()){
+                            if(iter.next() == ((Number)value).intValue()){
+                                violatesEnumConstraint = false;
+                                break;
+                            }
+                        }
+                    } else {
+                        List<Double> intList = (List<Double>)this.constraints.get(CONSTRAINT_KEY_ENUM);
+                        Iterator<Double> iter = intList.iterator();
+                        while (iter.hasNext()){
+                            if(iter.next() == ((Number)value).doubleValue()){
+                                violatesEnumConstraint = false;
+                                break;
+                            }
+                        }
                     }
-                }
-            }else if(value instanceof ZonedDateTime){
-                List<ZonedDateTime> timeList = (List<ZonedDateTime>)this.constraints.get(CONSTRAINT_KEY_ENUM);
 
-                Iterator<ZonedDateTime> iter = timeList.iterator();
-                while(iter.hasNext()){
-                    if(iter.next().compareTo((ZonedDateTime)value) == 0){
-                        violatesEnumConstraint = false;
-                        break;
+                }else if(value instanceof LocalTime){
+                    List<LocalTime> timeList = (List<LocalTime>)this.constraints.get(CONSTRAINT_KEY_ENUM);
+
+                    Iterator<LocalTime> iter = timeList.iterator();
+                    while(iter.hasNext()){
+                        if(iter.next().compareTo((LocalTime)value) == 0){
+                            violatesEnumConstraint = false;
+                            break;
+                        }
                     }
-                }
+                }else if(value instanceof ZonedDateTime){
+                    List<ZonedDateTime> timeList = (List<ZonedDateTime>)this.constraints.get(CONSTRAINT_KEY_ENUM);
 
-            }else if(value instanceof LocalDate){
-                List<LocalDate> dateList = (List<LocalDate>)this.constraints.get(CONSTRAINT_KEY_ENUM);
-
-                Iterator<LocalDate> iter = dateList.iterator();
-                while(iter.hasNext()){
-                    if(iter.next().compareTo((LocalDate)value) == 0){
-                        violatesEnumConstraint = false;
-                        break;
+                    Iterator<ZonedDateTime> iter = timeList.iterator();
+                    while(iter.hasNext()){
+                        if(iter.next().compareTo((ZonedDateTime)value) == 0){
+                            violatesEnumConstraint = false;
+                            break;
+                        }
                     }
-                }
 
-            }else if(value instanceof Year){
-                List<Year> yearList = (List<Year>)this.constraints.get(CONSTRAINT_KEY_ENUM);
+                }else if(value instanceof LocalDate){
+                    List<LocalDate> dateList = (List<LocalDate>)this.constraints.get(CONSTRAINT_KEY_ENUM);
 
-                Iterator<Year> iter = yearList.iterator();
-                while(iter.hasNext()){
-                    if(iter.next().compareTo((Year)value) == 0){
-                        violatesEnumConstraint = false;
-                        break;
+                    Iterator<LocalDate> iter = dateList.iterator();
+                    while(iter.hasNext()){
+                        if(iter.next().compareTo((LocalDate)value) == 0){
+                            violatesEnumConstraint = false;
+                            break;
+                        }
                     }
-                }
 
-            }else if(value instanceof YearMonth){
-                List<YearMonth> yearMonthList = (List<YearMonth>)this.constraints.get(CONSTRAINT_KEY_ENUM);
+                }else if(value instanceof Year){
+                    List<Year> yearList = (List<Year>)this.constraints.get(CONSTRAINT_KEY_ENUM);
 
-                Iterator<YearMonth> iter = yearMonthList.iterator();
-                while(iter.hasNext()){
-                    if(iter.next().compareTo((YearMonth)value) == 0){
-                        violatesEnumConstraint = false;
-                        break;
+                    Iterator<Year> iter = yearList.iterator();
+                    while(iter.hasNext()){
+                        if(iter.next().compareTo((Year)value) == 0){
+                            violatesEnumConstraint = false;
+                            break;
+                        }
                     }
+
+                }else if(value instanceof YearMonth){
+                    List<YearMonth> yearMonthList = (List<YearMonth>)this.constraints.get(CONSTRAINT_KEY_ENUM);
+
+                    Iterator<YearMonth> iter = yearMonthList.iterator();
+                    while(iter.hasNext()){
+                        if(iter.next().compareTo((YearMonth)value) == 0){
+                            violatesEnumConstraint = false;
+                            break;
+                        }
+                    }
+
+                }else if(value instanceof Duration){
+                    List<Duration> durationList = (List<Duration>)this.constraints.get(CONSTRAINT_KEY_ENUM);
+
+                    Iterator<Duration> iter = durationList.iterator();
+                    while(iter.hasNext()){
+                        if(iter.next().compareTo((Duration)value) == 0){
+                            violatesEnumConstraint = false;
+                            break;
+                        }
+                    }
+
                 }
 
-            }else if(value instanceof Duration){
-                List<Duration> durationList = (List<Duration>)this.constraints.get(CONSTRAINT_KEY_ENUM);
-                
-                Iterator<Duration> iter = durationList.iterator();
-                while(iter.hasNext()){
-                    if(iter.next().compareTo((Duration)value) == 0){
-                        violatesEnumConstraint = false;
-                        break;
-                    }
+                if(violatesEnumConstraint){
+                    violatedConstraints.put(CONSTRAINT_KEY_ENUM, this.constraints.get(CONSTRAINT_KEY_ENUM));
                 }
-                
-            }
-            
-            if(violatesEnumConstraint){
-                violatedConstraints.put(CONSTRAINT_KEY_ENUM, this.constraints.get(CONSTRAINT_KEY_ENUM));
             }
         }
 
