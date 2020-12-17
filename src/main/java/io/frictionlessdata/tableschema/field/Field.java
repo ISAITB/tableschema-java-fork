@@ -458,7 +458,7 @@ public abstract class Field<T> {
                     violatedConstraints.put(CONSTRAINT_KEY_PATTERN, regexPatternString);
                 }
             
-            }else{
+            }else if (value != null) {
                 // If the value is not a String, then just interpret as a constraint violation.
                 violatedConstraints.put(CONSTRAINT_KEY_PATTERN, regexPatternString);
             }
@@ -587,7 +587,7 @@ public abstract class Field<T> {
             }
         }
 
-        if (this.constraints.containsKey(CONSTRAINT_KEY_UNIQUE)) {
+        if (this.constraints.containsKey(CONSTRAINT_KEY_UNIQUE) && value != null) {
             boolean unique = Boolean.parseBoolean(this.constraints.get(CONSTRAINT_KEY_UNIQUE).toString());
             if (unique) {
                 if (existingValues == null) {
