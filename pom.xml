@@ -47,17 +47,6 @@
         </repository>
     </repositories>
 
-    <distributionManagement>
-        <repository>
-            <id>itbRepoWrite</id>
-            <url>${itbRepoWriteUrl}</url>
-        </repository>
-        <snapshotRepository>
-            <id>itbRepoWrite</id>
-            <url>${itbRepoWriteUrl}</url>
-        </snapshotRepository>
-    </distributionManagement>
-
     <build>
         <plugins>
             <plugin>
