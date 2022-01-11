@@ -1,17 +1,13 @@
 package io.frictionlessdata.tableschema;
 
+import io.frictionlessdata.tableschema.datasourceformat.CsvDataSourceFormat;
+import io.frictionlessdata.tableschema.datasourceformat.DataSourceFormat;
 import io.frictionlessdata.tableschema.datasourceformat.StringArrayDataSourceFormat;
+import io.frictionlessdata.tableschema.exception.InvalidCastException;
 import io.frictionlessdata.tableschema.exception.TableSchemaException;
 import io.frictionlessdata.tableschema.exception.TableValidationException;
 import io.frictionlessdata.tableschema.exception.TypeInferringException;
-import io.frictionlessdata.tableschema.datasourceformat.CsvDataSourceFormat;
-import io.frictionlessdata.tableschema.datasourceformat.DataSourceFormat;
-import io.frictionlessdata.tableschema.exception.InvalidCastException;
-
-import java.io.*;
-
 import io.frictionlessdata.tableschema.field.Field;
-import io.frictionlessdata.tableschema.iterator.BeanIterator;
 import io.frictionlessdata.tableschema.iterator.SimpleTableIterator;
 import io.frictionlessdata.tableschema.iterator.TableIterator;
 import io.frictionlessdata.tableschema.schema.Schema;
@@ -20,6 +16,7 @@ import io.frictionlessdata.tableschema.util.TableSchemaUtil;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 
+import java.io.*;
 import java.net.URL;
 import java.util.*;
 
@@ -187,10 +184,6 @@ public class Table{
 
     public Iterator<Object[]> iterator(boolean keyed, boolean extended, boolean cast, boolean relations) throws Exception{
        return new TableIterator<>(this, keyed, extended, cast, relations);
-    }
-
-    public BeanIterator iterator(Class<?> beanType, boolean relations) throws Exception{
-        return new BeanIterator(this,  beanType, relations);
     }
 
     public Iterator<String[]> stringArrayIterator() throws Exception{

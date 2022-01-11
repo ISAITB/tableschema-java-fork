@@ -211,35 +211,6 @@
 		    <version>${jackson.version}</version>
 		</dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.geotools/gt-opengis
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-opengis</artifactId>
-            <version>22.2</version>
-        </dependency> -->
-
-        <!-- https://mvnrepository.com/artifact/org.geotools/gt-opengis -->
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-opengis</artifactId>
-            <version>23.0</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/org.geotools/gt-geometry -->
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-geometry</artifactId>
-            <version>23.0</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/org.locationtech.jts/jts-core -->
-        <dependency>
-            <groupId>org.locationtech.jts</groupId>
-            <artifactId>jts-core</artifactId>
-            <version>1.16.1</version>
-        </dependency>
-        <!-- End Dependencies for Bean-based Schema inferal -->
-
         <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
         <dependency>
             <groupId>org.apache.commons</groupId>

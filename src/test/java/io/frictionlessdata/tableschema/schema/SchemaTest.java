@@ -3,7 +3,6 @@ package io.frictionlessdata.tableschema.schema;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.frictionlessdata.tableschema.Table;
 import io.frictionlessdata.tableschema.TestHelper;
-import io.frictionlessdata.tableschema.beans.EmployeeBean;
 import io.frictionlessdata.tableschema.exception.ForeignKeyException;
 import io.frictionlessdata.tableschema.exception.InvalidCastException;
 import io.frictionlessdata.tableschema.exception.PrimaryKeyException;
@@ -701,20 +700,6 @@ public class SchemaTest {
         Table table = Table.fromSource(f, getTestDataDirectory(), schema, null);
         List<Object[]> data = table.read();
         Assert.assertEquals(3, data.size());
-    }
-
-    // Create schema from a provided Bean class and compare with
-    // human-defined schema. Allow for slight differences eg. in the
-    // field format.
-    @Test
-    public void testSchemaFromBeanClass() throws Exception{
-        Schema schema = BeanSchema.infer(EmployeeBean.class);
-        File f = new File(getTestDataDirectory(), "schema/employee_schema.json");
-        Schema expectedSchema;
-        try (FileInputStream fis = new FileInputStream(f)) {
-            expectedSchema = Schema.fromJson (fis, false);
-        }
-        Assert.assertTrue(expectedSchema.similar(schema));
     }
 
     private static File getResourceFile(String fileName) throws URISyntaxException {
